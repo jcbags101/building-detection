@@ -1,0 +1,4 @@
+tensorflow-cpu>=2.8.0  # Using tensorflow-cpu to reduce deployment size
+streamlit>=1.22.0
+numpy>=1.21.0
+Pillow>=9.0.0 
