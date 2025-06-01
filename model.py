@@ -2,6 +2,10 @@ import os
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from utils import load_training_data
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
 
 def create_model(num_classes):
     """
@@ -57,11 +61,19 @@ def train_model(data_dir='dataset', model_path='building_classifier.h5'):
     print(f"Found {len(class_names)} classes: {class_names}")
     print(f"Total images: {len(images)}")
     
-    # Split into training and validation sets
+    # Split into training, validation, and test sets
     from sklearn.model_selection import train_test_split
-    X_train, X_val, y_train, y_val = train_test_split(
+    X_train_val, X_test, y_train_val, y_test = train_test_split(
         images, labels, test_size=0.2, random_state=42
     )
+    
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train_val, y_train_val, test_size=0.2, random_state=42
+    )
+    
+    print(f"Training set size: {len(X_train)}")
+    print(f"Validation set size: {len(X_val)}")
+    print(f"Test set size: {len(X_test)}")
     
     # Create and train the model
     print("Creating and training model...")
@@ -75,8 +87,61 @@ def train_model(data_dir='dataset', model_path='building_classifier.h5'):
         validation_data=(X_val, y_val)
     )
     
+    # Evaluate on test set
+    print("\nEvaluating model on test set...")
+    test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    print(f"Test accuracy: {test_accuracy:.4f}")
+    print(f"Test loss: {test_loss:.4f}")
+    
+    # Generate predictions for confusion matrix
+    y_pred = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+    
+    # Create confusion matrix
+    cm = confusion_matrix(y_test, y_pred_classes)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=class_names,
+                yticklabels=class_names)
+    plt.title('Confusion Matrix')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.savefig('confusion_matrix.png')
+    plt.close()
+    
+    # Print classification report
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred_classes, target_names=class_names))
+    
+    # Plot training history
+    plt.figure(figsize=(12, 4))
+    
+    # Plot accuracy
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    
+    # Plot loss
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.savefig('training_history.png')
+    plt.close()
+    
     # Save the model
-    print(f"Saving model to {model_path}...")
+    print(f"\nSaving model to {model_path}...")
     model.save(model_path)
     
     # Save class names

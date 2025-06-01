@@ -1,13 +1,28 @@
-# Building Type Classifier
+# Building Type Classification
 
-This application uses a Convolutional Neural Network (CNN) to classify building types from images. It includes a web interface built with Streamlit for easy interaction.
+This project implements a CNN-based model for classifying different types of buildings from images. The model is built using TensorFlow/Keras and includes a Streamlit web interface for easy interaction.
 
-## Local Setup
+## Project Structure
 
-1. Create a virtual environment (recommended):
+```
+building-detection/
+├── app.py              # Streamlit web application
+├── model.py            # CNN model implementation and training
+├── utils.py            # Utility functions for data loading and preprocessing
+├── requirements.txt    # Python dependencies
+├── dataset/           # Training data directory
+│   ├── class1/        # Images for class 1
+│   ├── class2/        # Images for class 2
+│   └── ...
+└── models/            # Directory for saved models
+```
+
+## Setup
+
+1. Create and activate a virtual environment:
 
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
@@ -17,63 +32,87 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Prepare your dataset:
-   - Create a `dataset` folder in the project root
-   - Inside `dataset`, create subfolders for each building type (e.g., 'house', 'office', 'church')
-   - Place corresponding images in each subfolder
+## Dataset Organization
+
+The dataset should be organized in the following structure:
+
+```
+dataset/
+├── class1/
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
+├── class2/
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
+└── ...
+```
+
+Each class should be in its own directory, containing the respective building images. Supported image formats are: .jpg, .jpeg, and .png.
 
 ## Training the Model
 
-To train the model on your dataset:
+To train the model, run:
 
 ```bash
 python model.py
 ```
 
-This will:
+The training process will:
 
-- Load and preprocess images from the `dataset` folder
-- Train a CNN model
-- Save the trained model as `building_classifier.h5`
-- Save class names to `class_names.txt`
+1. Load and preprocess images from the dataset directory
+2. Split the data into training (64%), validation (16%), and test (20%) sets
+3. Train a CNN model with the following architecture:
+   - 3 convolutional layers with max pooling
+   - Dense layers for classification
+4. Generate and save:
+   - The trained model (`building_classifier.h5`)
+   - Class names (`class_names.txt`)
+   - Confusion matrix visualization (`confusion_matrix.png`)
+   - Training history plots (`training_history.png`)
 
-## Running the Web App
+## Model Architecture
 
-To start the Streamlit web interface locally:
+The CNN model consists of:
+
+- Input layer: 150x150x3 (RGB images)
+- 3 convolutional blocks, each with:
+  - Conv2D layer with ReLU activation
+  - MaxPooling2D layer
+- Flatten layer
+- Dense layer (64 units) with ReLU activation
+- Output layer with softmax activation
+
+## Running the Web Interface
+
+To start the Streamlit web interface:
 
 ```bash
 streamlit run app.py
 ```
 
-## Deployment
+The web interface allows you to:
 
-This app can be deployed to Streamlit Cloud for free. To deploy:
+1. Upload building images
+2. Get predictions for the building type
+3. View the model's confidence scores
 
-1. Create a GitHub repository and push your code:
+## Model Evaluation
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <your-github-repo-url>
-git push -u origin main
-```
+The training process automatically generates:
 
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Sign in with GitHub
-4. Click "New app"
-5. Select your repository, branch (main), and file (app.py)
-6. Click "Deploy"
+- Confusion matrix showing prediction accuracy across classes
+- Classification report with precision, recall, and F1-score
+- Training history plots showing accuracy and loss over epochs
 
-Note: Make sure your trained model (`building_classifier.h5`) and class names file (`class_names.txt`) are committed to the repository.
+## Requirements
 
-## Project Structure
-
-- `model.py`: Contains the CNN model definition and training code
-- `utils.py`: Helper functions for image preprocessing and model loading
-- `app.py`: Streamlit web interface
-- `requirements.txt`: Project dependencies
-- `dataset/`: Directory for training images (create this)
-- `building_classifier.h5`: Saved model (created after training)
-- `class_names.txt`: List of class names (created after training)
+- Python 3.7+
+- TensorFlow 2.8.0+
+- Streamlit 1.22.0+
+- NumPy 1.21.0+
+- Pillow 9.0.0+
+- scikit-learn 1.0.0+
+- matplotlib 3.5.0+
+- seaborn 0.11.0+
